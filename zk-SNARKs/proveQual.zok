@@ -1,0 +1,130 @@
+/* Pythia worker quality proof for a treeDepth of 15 */
+
+/*
+Since we have q = (alpha,beta), we have double the commitments to the merkle tree as 
+[compressed(alpha),compressed(beta)]
+*/
+
+// merkle tree generation:
+// 2^10 : 4 mins
+// 2^15 : 108 mins
+// fileName : pythia2power15.npy
+// directionSelector : [0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+
+
+
+import "utils/pack/u32/nonStrictUnpack256" as unpack128
+import "utils/pack/bool/nonStrictUnpack256" as nonstrict_unpack256
+import "signatures/verifyEddsa" as verifyEddsa
+import "ecc/edwardsAdd" as add
+import "ecc/edwardsCompress" as edwardsCompress
+import "utils/pack/bool/pack256" as pack256
+import "utils/pack/bool/unpack256" as unpack256
+import "utils/pack/u32/pack256" as packu32
+import "utils/casts/u32_8_to_bool_256" as u32toBool
+import "hashes/pedersen/512bitBool" as pedersenBool
+import "./pedersen.zok" as pedersen_commitment
+import "./ee" as elgamal
+
+
+from "ecc/babyjubjubParams" import BabyJubJubParams
+import "ecc/babyjubjubParams" as context
+
+// helper functions
+
+def multiplex(bool selector, bool[256] left, bool[256] right) -> (bool[256]):
+	return if selector then right else left fi
+
+
+def returnu32(field[2] point, BabyJubJubParams context) -> (u32[8]):
+    bool[256] compressed_combo = edwardsCompress(point)
+    return unpack128(pack256(compressed_combo))
+
+
+// main function
+
+def main(public field[2] authorityPublicKey1, public field[2] authorityPublicKey2, public field[4] ansEnc, private field[2] answer, private field rAnswer, public field[4] addEnc, private field[2] address, private field rAddress, public field[2] thresholds, public field treeDepth, public field hash_tag_field, public field[2][2] newQualCom, public field rootDigest_field, private field[2] R, private field S, public field[2] A, private u32[8] M0, private u32[8] M1, private field[2] q_i, private field[2] old_random, private field[2] new_random, private field[2][2] oldQualCom, private bool[20][256] PathDigest, private bool[20] directionSelector, private field[2] r_attack) -> (field):
+
+
+
+    /* provequal checks
+    1) certificate check (EdDSAver) 
+    2) quality above a threshold check (TaskVer)
+    3) re-randomized commitment check (ComQualVer)
+    5) correctness of hash_tag check (HashComVer)
+    6) membership correctness check (MTPathVer)
+    */
+
+    BabyJubJubParams context = context()
+
+// first check the correctness of the encryptions
+   assert(ansEnc == elgamal(answer, authorityPublicKey1, authorityPublicKey2, rAnswer))
+   assert(addEnc == elgamal(address, authorityPublicKey1, authorityPublicKey2, rAddress))
+
+    
+    
+    /* pre-processing */
+     
+    // creating m_i
+    // convert from field to u32 array for pedersen hash
+    bool[256] h1 = u32toBool(M0)
+    bool[256] h2 = u32toBool(M1)
+    bool[256] m_iPacked = pedersenBool([...h1, ...h2])
+
+	
+    // 1) certificate check
+    bool isVerified = verifyEddsa(R, S, A, M0, M1, context)
+    assert(isVerified)		// only continue if the certificate was correct
+
+    // 2) quality above a threshold check
+    assert(thresholds[0] <= q_i[0] && thresholds[1] >= q_i[1])
+
+    // 3) re-randomized commitment check
+    // first check if q_i is correctly given for old commitment
+    assert(oldQualCom[0] == pedersen_commitment(q_i[0], old_random[0]))
+    assert(oldQualCom[1] == pedersen_commitment(q_i[1], old_random[1]))
+    // now check if the new commitment is correct
+    assert(newQualCom[0] == add(oldQualCom[0], pedersen_commitment(0, new_random[0]),context))
+    assert(newQualCom[1] == add(oldQualCom[1], pedersen_commitment(0, new_random[1]),context))
+   	
+    field[2] dummy_1 = pedersen_commitment(0,r_attack[0])
+    field[2] dummy_2 = pedersen_commitment(0,r_attack[1])
+    
+
+    // 5) correctness of hash_tag check
+    // combine all the commitment values to one
+    field[2] combo1 = add(oldQualCom[0], dummy_1,context)
+    field[2] combo2 = add(oldQualCom[1], dummy_2 ,context)
+    field[2] combo = add(combo1, combo2, context)
+    //u32[8] combo_int = returnu32(combo, context)
+    //bool[256] comboBool = u32toBool(combo_int)
+    bool[256] comboBool = edwardsCompress(combo)
+
+    // check if the hash_tag is correct
+    assert(hash_tag_field == pack256(pedersenBool([...comboBool, ...m_iPacked])))
+
+    // 6) membership proof
+    /* Setup */
+    	// create the leaf value
+    	// concatenation of oldQualCom and HashIndex
+    	bool[512] leafvalue = [...edwardsCompress(combo1), ...edwardsCompress(combo2)]
+    
+	// get the leaf digest
+	bool[256] currentDigest = pedersenBool(leafvalue)
+	field counter = 1
+	bool currentDirection = false
+
+	// Loop up the tree
+    for u32 i in 0..20 do
+        currentDirection = directionSelector[i]
+        bool[256] lhs = multiplex(currentDirection, currentDigest, PathDigest[i])
+        bool[256] rhs = multiplex(!currentDirection, currentDigest, PathDigest[i])
+        currentDigest = pedersenBool([...lhs, ...rhs])
+        counter = counter + 1
+    endfor
+
+    
+	assert(counter == treeDepth)
+	assert(rootDigest_field == pack256(currentDigest))
+
+    return rootDigest_field
