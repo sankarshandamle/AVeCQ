@@ -1,0 +1,39 @@
+{
+  "workers" : [
+    {
+      "answer_encryption" : [],
+      "quality_commitment" : [],
+      "randomness_encryption" : [],
+      "hash_tag": [],
+      "proof_ipfs_link": []
+    },
+    {
+      "answer_encryption" : [],
+      "quality_commitment" : [],
+      "randomness_encryption" : [],
+      "hash_tag": [],
+      "proof_ipfs_link": []
+    },
+    {
+      "answer_encryption" : [],
+      "quality_commitment" : [],
+      "randomness_encryption" : [],
+      "hash_tag": [],
+      "proof_ipfs_link": []
+    },
+    {
+      "answer_encryption" : [],
+      "quality_commitment" : [],
+      "randomness_encryption" : [],
+      "hash_tag": [],
+      "proof_ipfs_link": []
+    },
+    {
+      "answer_encryption" : [],
+      "quality_commitment" : [],
+      "randomness_encryption" : [],
+      "hash_tag": [],
+      "proof_ipfs_link": []
+    }
+    ]
+}
