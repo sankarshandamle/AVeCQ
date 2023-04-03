@@ -1,0 +1,70 @@
+from "ecc/babyjubjubParams" import BabyJubJubParams
+import "ecc/edwardsScalarMult" as scalarMult
+import "ecc/edwardsAdd" as add
+import "utils/pack/bool/nonStrictUnpack256" as unpack256
+import "ecc/babyjubjubParams" as context
+import "utils/pack/u32/pack" as pack    // only for latest ZoKrates version
+import "ecc/edwardsNegate" as negate
+import "./ee" as elgamal
+import "utils/casts/field_to_u32" as field_to_u32
+import "utils/casts/u32_to_field" as u32_to_field
+import "utils/pack/bool/pack" as unconstrainedPack
+
+def decryption(bool[256] boolPrikey, field[2] C0, field[2] C1, BabyJubJubParams CP) -> (field):
+  field[2] S = scalarMult(boolPrikey, C0, CP)
+  field[2] M = add(C1, negate(S), CP)
+  return M[0]
+
+def main(public field[2] authorityPublicKey1, public field[2] authorityPublicKey2, private field authorityPrivateKey, public field[4] correctAns, public field[39][2] c0, public field[39][2] c1, private field newRandomSecret, private field yAxis)->(bool):
+  // let us get the field ready
+  BabyJubJubParams cp = context()
+
+  // first check the validity of the public-private key pair of the requester
+  bool[256] boolPrikey = unpack256(authorityPrivateKey)
+  assert(scalarMult(boolPrikey,authorityPublicKey1,cp)==authorityPublicKey2)
+
+
+  // python like list; to store decrypted answers; size -> n 
+  field[39] pureAnswers = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+                           0,0,0,0,0,0,0] 
+
+
+
+				
+
+
+  // let us get the decrypted values
+  for u32 i in 0..39 do
+    pureAnswers[i] =  decryption(boolPrikey, c0[i], c1[i], cp)
+  endfor
+
+  //
+
+  // compute the final answer
+  // final answer = majority answer
+// field[8] anscount = [0,0,0,0,0,0,0,0]
+
+field[2] anscount = [0,0]
+
+  field final_answer = 0  // variable to store the final answer
+
+  // number of worker loop
+  for u32 i in 0..39 do
+    // number of choices loop
+    for u32 j in 0..2 do
+      anscount[j] = anscount[j] + if field_to_u32(pureAnswers[i])%2 == j then 1 else 0 fi
+    endfor
+  endfor
+
+  for u32 j in 0..2 do
+      final_answer = if anscount[j] > final_answer then u32_to_field(j) else final_answer fi 
+  endfor
+   
+
+  final_answer = if final_answer == 1 then 2 else final_answer fi 
+
+  field[4] finalEnc = elgamal([final_answer,yAxis], authorityPublicKey1, authorityPublicKey2, newRandomSecret)
+
+  assert(correctAns == finalEnc)
+
+  return true
