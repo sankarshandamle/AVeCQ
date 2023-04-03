@@ -13,9 +13,9 @@ In crowdsourcing systems, requesters publish tasks, and interested workers provi
 In order to compare AVeCQ with the state-of-the-art, we prototype it over Ethereum, deployed on the Goerli and Rinkeby TestNets. AVeCQ outperforms the state-of-the-art in three popular crowdsourcing tasks (image annotation, average review, and Gallup polls). For instance, for an Average Review task with 5 choices and 128 participating workers AVeCQ is 40\% faster (including overhead to compute and verify the necessary proofs and blockchain transaction processing time) with the task's requester consuming 87\% fewer gas units.
 
 ### Requirements
-- Zokrates
+- Zokrates: For implementing zk-SNARKs
 - Web3J
-- pycrypto
+- pycrypto: Zokrates companion crypto library
 
 ## Citation
 ```
