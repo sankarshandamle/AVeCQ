@@ -1,6 +1,7 @@
 # AVeCQ: Anonymous Verifiable Crowdsourcing with Worker Qualities
 
 Authors: Vlasis Koutsos, Sankarshan Damle, Dimitrios Papadopoulos, Dimitris Chatzopoulos, Sujit Gujar
+
 Appears in: IEEE Transactions on Dependable and Secure Computing (TDSC) 
 
 ## TL;DR
