@@ -1,6 +1,7 @@
 # AVeCQ: Anonymous Verifiable Crowdsourcing with Worker Qualities
 
-Authors: Sankarshan Damle, Vlasis Koutsos, Dimitrios Papadopoulos, Dimitris Chatzopoulos, Sujit Gujar
+Authors: Vlasis Koutsos, Sankarshan Damle, Dimitrios Papadopoulos, Dimitris Chatzopoulos, Sujit Gujar
+Appears in: IEEE Transactions on Dependable and Secure Computing (TDSC) 
 
 ## TL;DR
 
@@ -19,10 +20,14 @@ In order to compare AVeCQ with the state-of-the-art, we prototype it over Ethere
 
 ## Citation
 ```
-@article{damle2023avecq,
-  title={AVeCQ: Anonymous Verifiable Crowdsourcing with Worker Qualities},
-  author={Damle, Sankarshan and Koutsos, Vlasis and Papadopoulos, Dimitrios and Chatzopoulos, Dimitris and Gujar, Sujit},
-  journal={arXiv preprint arXiv:2302.03941},
-  year={2023}
-}
+@ARTICLE{KDPCG24,
+  author={Koutsos, Vlasis and Damle, Sankarshan and Papadopoulos, Dimitrios and Chatzopoulos, Dimitris and Gujar, Sujit},
+  journal={IEEE Transactions on Dependable and Secure Computing}, 
+  title={AVeCQ: Anonymous Verifiable Crowdsourcing with Worker Qualities}, 
+  year={2024},
+  volume={},
+  number={},
+  pages={1-18},
+  keywords={Anonymity;zk-SNARKs;Crowdsourcing;Blockchain},
+  doi={10.1109/TDSC.2024.3396342}}
 ```
